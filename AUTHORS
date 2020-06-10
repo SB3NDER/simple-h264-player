@@ -1,22 +1,24 @@
 The following authors have all licensed their contributions to the project
-under the licensing terms detailed in LICENSE (MIT style)
+under the licensing terms detailed in LICENSE.
+
+# simple-h264-player
+- Ibrahim Bendebka @SB3NDER <ibrahim.bendebka@gmail.com>
 
 # ws-avc-player
-* Matija Gaspar matijagaspar@gmail.com
+- Matija Gaspar <matijagaspar@gmail.com>
 
 # h264-live-player
-* Francois Leurent @131 <131.js@cloudyks.org>
+- Francois Leurent @131 <131.js@cloudyks.org>
 
 # Broadway emscriptend h264 (broadway/Decoder.js)
-* Michael Bebenita <mbebenita@gmail.com>
-* Alon Zakai <alonzakai@gmail.com>
-* Andreas Gal <gal@mozilla.com>
-* Mathieu 'p01' Henri <mathieu@p01.org>
-* Matthias 'soliton4' Behrens <matthias.behrens@gmail.com>
+- Michael Bebenita <mbebenita@gmail.com>
+- Alon Zakai <alonzakai@gmail.com>
+- Andreas Gal <gal@mozilla.com>
+- Mathieu 'p01' Henri <mathieu@p01.org>
+- Matthias 'soliton4' Behrens <matthias.behrens@gmail.com>
 
 # WebGL canvas helpers
-* Sam Leitch @oneam
+- Sam Leitch @oneam
 
 # AVC player inspiration
-* Benjamin Xiao @urbenlegend
-
+- Benjamin Xiao @urbenlegend

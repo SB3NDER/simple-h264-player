@@ -1,98 +1,65 @@
-<html>
-  <head>
-    <title>h264-live-player web client demo</title>
-    <style>
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>simple-h264-player</title>
+		<script type="text/javascript" src="./H264Player.js"></script>
+		<script
+			type="text/javascript"
+			src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"
+		></script>
+		<style>
+			body {
+				background-color: black;
+				color: white;
+			}
+			#container {
+				display: flex;
+				justify-content: center;
+			}
+			#player {
+				background-color: rgba(0, 255, 127, 0.5);
+				width: 60%;
+			}
+			@media only screen and (max-width: 800px) {
+				#player {
+					width: 100%;
+				}
+			}
+		</style>
+	</head>
 
-      #video-box {
-        background-color: black;
-        position: relative;
-        width: 100%;
-        height: 0;
-        padding-bottom: calc(100% * 9 / 16);
-      }
-      #video-box > canvas{
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-      }
-      .flexbox {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-      .video-aligner {
-        width: 70%;
-      }
+	<body>
+		<span
+			>raspivid -t 0 -n -o - -fl -md 4 -w 1296 -h 972 -fps 25 -pf baseline -ih |
+			nc -v -u [IP] 3000</span
+		>
+		<br /><br />
+		<span id="frameBuffer">Frame buffer lenght:</span>
+		<br />
 
-      @media only screen and (max-width: 800px) {
-        .video-aligner {
-          width: 100%;
-        }
-      }
-    </style>
-  </head>
-  <body>
+		<div id="container">
+			<canvas id="player"></canvas>
+		</div>
 
-    <button type="button" onclick="wsavc.send('custom_event_from_client',{ hello:'world' })">Send event to server</button>
-    
-    <br/>
-    <p id='frame_buffer'></p>
-    <br/>
-    <div class="flexbox">
-    <div class="video-aligner">
-      <div id="video-box">
-        <canvas id='cam' >
-      </div>
-    </div>
-  </div>
-    
+		<script type="text/javascript">
+			var canvas = document.getElementById('player');
+			var fb = document.getElementById('frameBuffer');
 
-  <!-- provide WSAvcPlayer -->
-  <!-- <script type="text/javascript" src="Decoder.js"></script>
-  <script type="text/javascript" src="YUVCanvas.js"></script>
-  <script type="text/javascript" src="Player.js"></script> -->
-    <!-- <script type="text/javascript" src="Decoder.js">;</script> -->
-    <script type="text/javascript" src="WSAvcPlayer.js">;</script>
-    
-    <script type="text/javascript">
-      var canvas = document.getElementById('cam')
-      var fb = document.getElementById('frame_buffer')
-      // Create h264 player
-      var wsavc = new WSAvcPlayer.default({useWorker:true});
-      document.getElementById('video-box').appendChild(wsavc.AvcPlayer.canvas)
-      //expose instance for button callbacks
-      window.wsavc = wsavc;
-      
-      //maybe get rid of the ws inside the player?
-      //var uri = "ws://meganeko:3000/videoStream"// + document.location.host;
-      var uri = "ws://" + document.location.host;
-      //var uri = "ws://localhost:3333/"
-      wsavc.connect(uri);
+			var socket = io('http://localhost:4000', {
+				path: '/video',
+			});
 
-      //wsavc.on('message', m=>console.log(m))
-      
-      wsavc.on('disconnected',()=>console.log('WS Disconnected'))
-      wsavc.on('connected',()=>console.log('WS connected'))
-      wsavc.on('frame_shift',(fbl)=>{
-       fb.innerText = 'fl: '+fbl
-      })
-      
+			// Create h264 player
+			var player = new H264Player.default(canvas, { useWorker: true });
 
-      wsavc.on('resized',(payload)=>{
-        console.log('resized', payload)
-        const vb = document.getElementById('video-box')
+			socket.on('frame', (msg) => {
+				player.setFrame(msg);
+			});
 
-        vb.style = `padding-bottom: calc( 100% * ${payload.height} / ${ payload.width })`
-      })
-
-      wsavc.on('stream_active',active=>console.log('Stream is ',active?'active':'offline'))
-
-
-      wsavc.on('custom_event_from_server',event=>console.log('got event from server', event))
-
-    </script>
-    
-  </body>
+			player.on('frameShift', (fbl) => {
+				fb.innerText = 'Frame buffer lenght: ' + fbl;
+			});
+		</script>
+	</body>
 </html>

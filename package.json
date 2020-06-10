@@ -1,67 +1,64 @@
 {
-  "name": "ws-avc-player",
-  "version": "2.0.2",
-  "main": "lib/WSAvcPlayer.js",
-  "files": [
-    "lib/",
-    "AUTHORS",
-    "LICENSE",
-    "README.md"
-  ],
-  "scripts": {
-    "example": "node example/index.js",
-    "build": "cross-env NODE_ENV=production webpack",
-    "build:dev": "webpack",
-    "lint": "eslint .",
-    "lint-fix": "eslint . --fix",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/matijagaspar/ws-avc-player"
-  },
-  "keywords": [
-    "h264",
-    "nal",
-    "live",
-    "broadcast",
-    "streaming",
-    "video",
-    "websocket",
-    "raspberry"
-  ],
-  "author": "Matija Gaspar (http://github.com/matijagaspar)",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/matijagaspar/ws-avc-player/issues"
-  },
-  "description": "Stream realtime h264 video directly to the browser. Ideal for raspberry pi. Comes with a browser player, and streaming server.\n Based of h264-live-player that uses Broadway Decoder.",
-  "dependencies": {
-    "debug": "^4.1.1",
-    "stream-split": "^1.1.0",
-    "string-replace-loader": "^2.2.0",
-    "sylvester.js": "^0.1.1"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.4.5",
-    "@babel/plugin-proposal-class-properties": "^7.5.5",
-    "@babel/preset-env": "^7.4.5",
-    "@babel/preset-stage-1": "^7.0.0",
-    "@clusterws/cws": "^0.15.2",
-    "babel-eslint": "^10.0.3",
-    "babel-loader": "^8.0.6",
-    "conventional-changelog-cli": "^2.0.25",
-    "copy-webpack-plugin": "^5.0.4",
-    "core-js": "3",
-    "cross-env": "^6.0.3",
-    "eslint": "^6.5.1",
-    "eslint-import-resolver-webpack": "^0.11.1",
-    "expres": "^0.0.5",
-    "file-loader": "^4.2.0",
-    "raw-loader": "^3.1.0",
-    "url-loader": "^2.2.0",
-    "webpack": "^4.41.2",
-    "webpack-bundle-analyzer": "^3.6.0",
-    "webpack-cli": "^3.3.9"
-  }
+	"name": "simple-h264-player",
+	"version": "1.0.0",
+	"author": "Ibrahim Bendebka (https://github.com/SB3NDER)",
+	"license": "MIT",
+	"description": "",
+	"keywords": [
+		"h264",
+		"nal",
+		"live",
+		"broadcast",
+		"streaming",
+		"video",
+		"websocket",
+		"raspberry",
+		"udp"
+	],
+	"bugs": {
+		"url": "https://github.com/SB3NDER/simple-h264-player/issues"
+	},
+	"files": [
+		"lib/",
+		"LICENSE",
+		"AUTHORS"
+	],
+	"main": "./lib/H264Player.js",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/SB3NDER/simple-h264-player"
+	},
+	"scripts": {
+		"example": "node example/index.js",
+		"build": "cross-env NODE_ENV=production webpack",
+		"build-dev": "webpack",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"dependencies": {
+		"debug": "^4.1.1",
+		"socket.io": "^2.3.0",
+		"stream-split": "^1.1.0",
+		"string-replace-loader": "^2.2.0",
+		"sylvester.js": "^0.1.1"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.4.5",
+		"@babel/plugin-proposal-class-properties": "^7.5.5",
+		"@babel/preset-env": "^7.4.5",
+		"@babel/preset-stage-1": "^7.0.0",
+		"@clusterws/cws": "^0.15.2",
+		"babel-eslint": "^10.0.3",
+		"babel-loader": "^8.0.6",
+		"conventional-changelog-cli": "^2.0.25",
+		"copy-webpack-plugin": "^5.0.4",
+		"core-js": "3",
+		"cross-env": "^6.0.3",
+		"expres": "^0.0.5",
+		"file-loader": "^4.2.0",
+		"raw-loader": "^3.1.0",
+		"url-loader": "^2.2.0",
+		"webpack": "^4.41.2",
+		"webpack-bundle-analyzer": "^3.6.0",
+		"webpack-cli": "^3.3.9"
+	}
 }

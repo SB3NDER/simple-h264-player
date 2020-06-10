@@ -1,106 +1,61 @@
-/* eslint-disable no-console */
-const AvcServer = require('../lib/server')
-const path = require('path')
-const http = require('http')
-// const WebSocketServer = require('uws').Server
-const { WebSocketServer } = require('@clusterws/cws')
-// require('uWebSockets.js')
-const net = require('net')
-const spawn = require('child_process').spawn
+const express = require('express');
+const path = require('path');
+const dgram = require('dgram');
+const stream = require('stream');
+const Splitter = require('stream-split');
+const socketIO = require('socket.io');
 
-const useRaspivid = process.argv.includes('raspivid')
-const width = 1280
-const height = 720
+var app = express();
 
-const express = require('express')
-const app = express()
+// stream splitter, broadcasting, and player signaling
+const NALseparator = Buffer.from([0, 0, 0, 1]); // NAL break
+
 // serve the html/index.html
-app.use(express.static(path.resolve(__dirname, 'html')))
+app.use(express.static(path.resolve(__dirname, 'html')));
 // serve the player
-app.use(express.static(path.resolve(__dirname, '../lib')))
+app.use(express.static(path.resolve(__dirname, '../lib')));
 
-const server = http.createServer(app)
+var updSocket = dgram.createSocket({ type: 'udp4', reuseAddr: true });
 
-// init web socket
-const wss = new WebSocketServer({ /* port: 3333 */ server })
-// init the avc server.
-const avcServer = new AvcServer(wss, width, height)
+updSocket.on('listening', () => {
+	let address = updSocket.address();
+	console.log(
+		'udp socket listening on ' + address.address + ':' + address.port
+	);
+});
 
-// handling custom events from client
-avcServer.client_events.on('custom_event_from_client', e => {
-    console.log('a client sent', e)
-    // broadcasting custom events to all clients (if you wish to send a event to specific client, handle sockets and new connections yourself)
-    avcServer.broadcast('custom_event_from_server', { hello: 'from server' })
-})
+var udpStream = new stream.Readable({
+	// The read logic is omitted since the data is pushed to the socket
+	// outside of the script's control. However, the read() function
+	// must be defined.
+	read() {},
+});
 
-// RPI example
-if (useRaspivid) {
-    let streamer = null
+updSocket.on('message', (msg) => {
+	// Push the data on the readable queue
+	udpStream.push(msg);
+});
 
-    const startStreamer = () => {
-        console.log('starting raspivid')
-        streamer = spawn('raspivid', [ '-pf', 'baseline', '-ih', '-t', '0', '-w', width, '-h', height, '-hf', '-fps', '15', '-g', '30', '-o', '-' ])
-        streamer.on('close', () => {
-            streamer = null
-        })
-        avcServer.setVideoStream(streamer.stdout)
-    }
+var splittedStream = udpStream.pipe(new Splitter(NALseparator)); // split frames
 
-    // OPTIONAL: start on connect
-    avcServer.on('client_connected', () => {
-        if (!streamer) {
-            startStreamer()
-        }
-    })
+updSocket.bind(3000);
 
+var io = new socketIO(4000, {
+	path: '/video',
+});
 
-    // OPTIONAL: stop on disconnect
-    avcServer.on('client_disconnected', () => {
-        console.log('client disconnected')
-        if (avcServer.clients.size < 1) {
-            if (!streamer) {
-                console.log('raspivid not running')
-                return
-            }
-            console.log('stopping raspivid')
-            streamer.kill('SIGTERM')
-        }
-    })
+io.on('connection', (socket) => {
+	console.log('socketIO: a user connected');
 
-} else {
-// create the tcp sever that accepts a h264 stream and broadcasts it back to the clients
-    this.tcpServer = net.createServer((socket) => {
-    // set video stream
-        socket.on('error', e => {
-            console.log('video downstream error:', e)
-        })
-        avcServer.setVideoStream(socket)
+	socket.on('disconnect', () => {
+		console.log('socketIO: a user disconnected');
+	});
 
-    })
-    this.tcpServer.listen(5000, '0.0.0.0')
-}
+	splittedStream.on('data', (msg) => {
+		socket.emit('frame', Buffer.concat([NALseparator, msg]));
+	});
+});
 
-server.listen(8081)
-
-// if not using raspivid option than use one of this to stream
-// ffmpeg OSX
-// then run ffmpeg: ffmpeg -framerate 30 -video_size 640x480 -f avfoundation -i 0  -vcodec libx264 -vprofile baseline -b:v 500k -bufsize 600k -tune zerolatency -pix_fmt yuv420p -r 15 -g 30 -f rawvideo tcp://localhost:5000
-
-// fmpeg Windows:
-
-// ffmpeg -framerate 25 -video_size 640x480 -f dshow -i "video=<DEVICE>"  -vcodec libx264 -vprofile baseline -b:v 500k -bufsize 600k -tune zerolatency -pix_fmt yuv420p -f rawvideo tcp://localhost:5000
-
-// to get video devices run:
-// ffmpeg -list_devices true -f dshow -i dummy
-
-// To get options of the device: 
-// ffmpeg -f dshow -list_options true -i video="<Device>"
-
-
-// examples:
-// ffmpeg -framerate 25 -video_size 640x480 -f dshow -i video="HD Camera"  -vcodec libx264 -vprofile baseline -b:v 500k -bufsize 600k -tune zerolatency -pix_fmt yuv420p -f rawvideo tcp://localhost:5000
-
-// ffmpeg -framerate 25 -video_size 1280x720 -f dshow -i "video=Logitech HD Webcam C270"  -vcodec libx264 -vprofile baseline -b:v 500k -bufsize 600k -tune zerolatency -pix_fmt yuv420p -f rawvideo tcp://localhost:5000
-// ffmpeg.exe -framerate 30 -video_size 1280x720 -f dshow -i video="HD Camera"  -vcodec libx264 -vprofile baseline -b:v 2m -bufsize 2m -pass 1 -coder 0 -bf 0 -flags -loop -tune zerolatency -pix_fmt yuv420p -wpredp 0 -f rawvideo tcp://localhost:5000
-// RPI
-// /opt/vc/bin/raspivid -pf baseline -ih -t 0 -w 640 -h 480 -hf -fps 15 -g 30 -o - | nc localhost 5000
+app.listen(5000, () => {
+	console.log('example app listening on port 5000');
+});
