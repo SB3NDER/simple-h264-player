@@ -18,7 +18,7 @@ class H264Player extends EventEmitter {
 
 		this.canvas = this.AvcPlayer.canvas;
 
-		// copy attributes
+		// copy existing html attributes
 		node.attributes.forEach((attr) => {
 			if (this.canvas.getAttribute(attr.nodeName) === null) {
 				// if attribute is not already setted
@@ -31,7 +31,7 @@ class H264Player extends EventEmitter {
 		//this.frameBufferLenght = 30;
 		this.running = false;
 		this.shiftFrameTimeout;
-		this.timeout = 500;
+		this.timeout = 800;
 	}
 
 	setFrame(data) {
@@ -53,9 +53,9 @@ class H264Player extends EventEmitter {
 		}
 
 		if (this.frameBuffer.length > 30) {
-			console.debug('Dropping frames', this.frameBuffer.length);
+			console.debug('dropping frames', this.frameBuffer.length);
 
-			const vI = this.frameBuffer.findIndex((e) => (e[4] & 0x1f) === 7); // wat?
+			const vI = this.frameBuffer.findIndex((e) => (e[4] & 0x1f) === 7);
 
 			if (vI >= 0) {
 				this.frameBuffer = this.frameBuffer.slice(vI);
@@ -65,15 +65,30 @@ class H264Player extends EventEmitter {
 		const frame = this.frameBuffer.shift();
 
 		if (frame) {
+			if (this.shiftFrameTimeout !== null) clearTimeout(this.shiftFrameTimeout);
+
 			this.emit('frameShift', this.frameBuffer.length);
-			clearTimeout(this.shiftFrameTimeout);
+
 			this.AvcPlayer.decode(frame);
 
 			// last frame
 			if (this.frameBuffer.length == 0) {
 				this.shiftFrameTimeout = setTimeout(() => {
+					console.debug('frame timed out', this.timeout, 'ms');
+
 					this.running = false;
-					this.canvas.width = this.canvas.width; // clear the canvas
+
+					// clear the canvas
+
+					// clear 2d context
+					this.canvas.height = this.canvas.height;
+
+					// clear webgl context
+					let ctx = player.canvas.getContext('webgl'); // get context
+					if (ctx !== null) {
+						//ctx.clearColor(0.0, 0.0, 0.0, 0.0); // set the clear color (trasparent)
+						ctx.clear(ctx.COLOR_BUFFER_BIT); // clear where the displayed image is stored
+					}
 				}, this.timeout);
 			}
 		}
