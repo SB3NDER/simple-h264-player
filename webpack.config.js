@@ -1,8 +1,10 @@
 const path = require('path');
-const isProduction = process.env.NODE_ENV === 'production';
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+
+const isProduction = process.env.NODE_ENV === 'production';
 const BroadwayDir = path.resolve(__dirname, 'Broadway/Player');
 // const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+
 const webpackConfig = {
 	entry: {
 		H264Player: path.resolve(__dirname, 'player/H264Player.js'),

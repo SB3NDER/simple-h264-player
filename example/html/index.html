@@ -3,15 +3,13 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title>simple-h264-player</title>
-		<script type="text/javascript" src="./H264Player.js"></script>
-		<script
-			type="text/javascript"
-			src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"
-		></script>
+		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript" src="/H264Player.js"></script>
 		<style>
 			body {
 				background-color: black;
 				color: white;
+				font-family: Arial;
 			}
 			#container {
 				display: flex;
@@ -30,10 +28,8 @@
 	</head>
 
 	<body>
-		<span
-			>raspivid -t 0 -n -o - -fl -md 4 -w 1296 -h 972 -fps 25 -pf baseline -ih |
-			nc -v -u [IP] 3000</span
-		>
+		<!-- prettier-ignore -->
+		<span>raspivid -t 0 -n -o - -fl -md 4 -w 1296 -h 972 -fps 25 -pf baseline -ih | nc -v -u [IP] 4000</span>
 		<br /><br />
 		<span id="frameBuffer">Frame buffer lenght:</span>
 		<br />
@@ -43,20 +39,18 @@
 		</div>
 
 		<script type="text/javascript">
+			'use strict';
+
 			var canvas = document.getElementById('player');
-			var fb = document.getElementById('frameBuffer');
+			var player = new H264Player.default(canvas, { useWorker: true }); // Create h264 player
 
-			var socket = io('http://localhost:4000', {
-				path: '/video',
-			});
+			var socket = io();
 
-			// Create h264 player
-			var player = new H264Player.default(canvas, { useWorker: true });
-
-			socket.on('frame', (msg) => {
+			socket.on('video', (msg) => {
 				player.setFrame(msg);
 			});
 
+			var fb = document.getElementById('frameBuffer');
 			player.on('frameShift', (fbl) => {
 				fb.innerText = 'Frame buffer lenght: ' + fbl;
 			});
